@@ -1,0 +1,7 @@
+package com.drathveloper.pocgrpcserver.repository;
+
+import com.drathveloper.pocgrpcserver.entity.ClientEntity;
+import org.springframework.data.repository.CrudRepository;
+
+public interface ClientRepository extends CrudRepository<ClientEntity, Long> {
+}
