@@ -7,6 +7,7 @@ import com.drathveloper.pocgrpcserver.service.ClientService;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -22,6 +23,14 @@ public class UserGrpcController extends UserServiceGrpc.UserServiceImplBase {
     private final ClientMapper clientMapper;
 
     @Override
+    public void getAllUsers(EmptyRequest emptyRequest, StreamObserver<UserBulkLoadResponse> responseObserver) {
+        var storedClients = clientService.findAll();
+        responseObserver.onNext(
+                clientMapper.clientModelListToUserBulkLoadResponse(storedClients));
+        responseObserver.onCompleted();
+    }
+
+    @Override
     public void bulkLoad(UserBulkLoadRequest request, StreamObserver<UserBulkLoadResponse> responseObserver) {
         long startTime = System.currentTimeMillis();
         List<Client> clients = clientMapper.userBulkLoadRequestToClientList(request);
@@ -30,6 +39,16 @@ public class UserGrpcController extends UserServiceGrpc.UserServiceImplBase {
                 clientMapper.clientModelListToUserBulkLoadResponse(processedClients));
         responseObserver.onCompleted();
         log.info("business logic execution time: {} ms", System.currentTimeMillis() - startTime);
+    }
+
+    @Override
+    public void getAllUsersServerStream(EmptyRequest emptyRequest, StreamObserver<CreatedUser> responseObserver) {
+        var processedClient = clientService.findAll();
+        processedClient.forEach(user -> {
+            responseObserver.onNext(
+                    clientMapper.clientModelToCreatedUserResponse(user));
+        });
+        responseObserver.onCompleted();
     }
 
     @Override

@@ -8,6 +8,8 @@ import java.util.List;
 @Service
 public interface ClientService {
 
+    List<Client> findAll();
+
     List<Client> processClients(Client... client);
 
     Client processClient(Client client);

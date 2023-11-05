@@ -4,10 +4,7 @@ import com.drathveloper.grpc.CreatedUser;
 import com.drathveloper.grpc.User;
 import com.drathveloper.grpc.UserBulkLoadRequest;
 import com.drathveloper.grpc.UserBulkLoadResponse;
-import com.drathveloper.pocgrpcserver.dto.BulkLoadUserRequest;
-import com.drathveloper.pocgrpcserver.dto.BulkLoadUserResponse;
-import com.drathveloper.pocgrpcserver.dto.CreatedUserDto;
-import com.drathveloper.pocgrpcserver.dto.UserDto;
+import com.drathveloper.pocgrpcserver.dto.*;
 import com.drathveloper.pocgrpcserver.entity.AddressEntity;
 import com.drathveloper.pocgrpcserver.entity.ClientEntity;
 import com.drathveloper.pocgrpcserver.model.Address;
@@ -16,9 +13,10 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.TimeZone;
+import com.google.protobuf.Timestamp;
 
 @Component
 public class ClientMapper {
@@ -58,26 +56,37 @@ public class ClientMapper {
 
     public CreatedUser clientModelToCreatedUserResponse(Client model) {
         return CreatedUser.newBuilder()
-                .setId(model.getId())
-                .setUsername(model.getUsername())
+                .setId(model.id())
+                .setUsername(model.username())
+                .setFirstName(model.firstName())
+                .setLastName(model.lastName())
+                .setEmail(model.email())
+                .setPhone(model.phone())
+                .setBirthDate(localDateToTimestamp(model.birthDate()))
+                .setCountry(model.address().country())
+                .setCity(model.address().city())
+                .setState(model.address().state())
+                .setAddress(model.address().address())
+                .setPostalCode(model.address().postalCode())
                 .build();
     }
 
     public ClientEntity clientToEntity(Client client) {
         return new ClientEntity(
-                client.getId(),
-                client.getUsername(),
-                client.getFullName(),
-                client.getEmail(),
-                client.getPhone(),
-                client.getBirthDate(),
+                client.id(),
+                client.username(),
+                client.firstName(),
+                client.lastName(),
+                client.email(),
+                client.phone(),
+                client.birthDate(),
                 new AddressEntity(
-                        client.getAddress().id(),
-                        client.getAddress().country(),
-                        client.getAddress().city(),
-                        client.getAddress().state(),
-                        client.getAddress().address(),
-                        client.getAddress().postalCode(),
+                        client.address().id(),
+                        client.address().country(),
+                        client.address().city(),
+                        client.address().state(),
+                        client.address().address(),
+                        client.address().postalCode(),
                         null));
     }
 
@@ -85,7 +94,8 @@ public class ClientMapper {
         return new Client(
                 entity.getId(),
                 entity.getUsername(),
-                entity.getFullName(),
+                entity.getFirstName(),
+                entity.getLastName(),
                 entity.getEmail(),
                 entity.getPhone(),
                 entity.getBirthDate(),
@@ -118,7 +128,17 @@ public class ClientMapper {
     }
 
     public CreatedUserDto clientToCreatedUser(Client client) {
-        return new CreatedUserDto(client.getId(), client.getUsername());
+        return new CreatedUserDto(client.id(), client.username(), client.firstName(), client.lastName(), client.email(), client.phone(), client.birthDate(), client.address().country(),
+                client.address().city(),
+                client.address().state(),
+                client.address().address(),
+                client.address().postalCode());
+    }
+
+    public GetUsersResponse clientsToGetUsersResponse(List<Client> clients) {
+        List<CreatedUserDto> createdUsers = clients.stream()
+                .map(this::clientToCreatedUser).toList();
+        return new GetUsersResponse(createdUsers);
     }
 
     public BulkLoadUserResponse clientsToBulkLoadUserResponse(List<Client> clients) {
@@ -129,5 +149,13 @@ public class ClientMapper {
 
     public List<Client> bulkLoadUserRequestToClients(BulkLoadUserRequest request) {
         return request.users().stream().map(this::userDtoToClient).toList();
+    }
+
+    public Timestamp localDateToTimestamp(LocalDate localDate) {
+        Instant instant = localDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+        return Timestamp.newBuilder()
+                .setSeconds(instant.getEpochSecond())
+                .setNanos(instant.getNano())
+                .build();
     }
 }

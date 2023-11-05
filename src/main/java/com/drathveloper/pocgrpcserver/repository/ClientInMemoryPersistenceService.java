@@ -6,6 +6,10 @@ import com.drathveloper.pocgrpcserver.service.ClientPersistenceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
 @Service
 @RequiredArgsConstructor
 public class ClientInMemoryPersistenceService implements ClientPersistenceService {
@@ -13,6 +17,11 @@ public class ClientInMemoryPersistenceService implements ClientPersistenceServic
     private final ClientRepository clientRepository;
 
     private final ClientMapper clientMapper;
+
+    @Override
+    public List<Client> findAll() {
+        return clientRepository.findAll().stream().map(clientMapper::clientEntityToClient).toList();
+    }
 
     @Override
     public Client save(Client client) {

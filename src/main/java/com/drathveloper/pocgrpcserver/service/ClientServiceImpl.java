@@ -14,6 +14,11 @@ public class ClientServiceImpl implements ClientService {
     private final ClientPersistenceService clientPersistenceService;
 
     @Override
+    public List<Client> findAll() {
+        return clientPersistenceService.findAll();
+    }
+
+    @Override
     public List<Client> processClients(Client... clients) {
         List<Client> processedClients = new ArrayList<>();
         for (Client client : clients) {
