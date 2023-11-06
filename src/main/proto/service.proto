@@ -48,9 +48,7 @@ message UserBulkLoadResponse {
 message EmptyRequest {}
 
 service UserService {
-  rpc getAllUsers(EmptyRequest) returns(UserBulkLoadResponse);
   rpc bulkLoad(UserBulkLoadRequest) returns(UserBulkLoadResponse);
-  rpc getAllUsersServerStream(EmptyRequest) returns(stream CreatedUser);
   rpc bulkLoadServerStream(UserBulkLoadRequest) returns(stream CreatedUser);
   rpc bulkLoadClientStream(stream User) returns(UserBulkLoadResponse);
   rpc bulkLoadBidirectionalStream(stream User) returns(stream CreatedUser);
